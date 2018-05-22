@@ -30,13 +30,17 @@ while [ $# -ne 0 ]
 do
     name="$1"
     case "$name" in
+        --version|-[Vv]ersion)
+            shift
+            version="$1"
+            ;;
         --[Ii]nstall-[Pp]ath)
             shift
             install_path="$1"
             ;;
-        --version|-[Vv]ersion)
+        --[Dd]ownload-[Pp]ath)
             shift
-            version="$1"
+            download_path="$1"
             ;;
         *)
             _error "Unknown argument \`$name\`"
@@ -79,6 +83,10 @@ fi
 if [ "$install_path" = "" ]; then
     _error "--install-path is required."
     exit 1
+fi
+
+if [ "$download_path" = "" ]; then
+    download_path=$install_path
 fi
 
 arch=`uname -m`
@@ -266,8 +274,8 @@ fi
 cmake_dir_name=$cmake_file_name
 cmake_file_name="$cmake_file_name.tar.gz"
 cmake_url=$(make_cmake_url $cmake_version $cmake_file_name)
-cmake_file_path="$install_path/$cmake_file_name"
-cmake_dir_path="$install_path/$cmake_dir_name"
+cmake_file_path="$download_path/$cmake_file_name"
+cmake_dir_path="$download_path/$cmake_dir_name"
 cmake_bin_folder_path="$install_path/bin"
 cmake_bin_path="$cmake_bin_folder_path/cmake"
 
@@ -282,7 +290,7 @@ echo " -> Downloading $cmake_url..."
 download $cmake_url $cmake_file_path
 
 echo " -> Extracting $cmake_file_name"
-extract_zipfile $cmake_file_path $install_path
+extract_zipfile $cmake_file_path $download_path
 
 echo " -> Moving install files..."
 mv $cmake_dir_path/* $install_path
