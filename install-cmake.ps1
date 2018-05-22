@@ -1,19 +1,9 @@
 #Requires -Version 2
 
 param (
-	[string] $Version = "",
-	[string] $InstallPath = ""
+	[string] $Version = $(throw "-Version is required."),
+	[string] $InstallPath = $(throw "-InstallPath is required.")
 )
-
-if($Version -eq "") {
-	"O parâmetro -Version é obrigatório" | write-warning
-	return
-}
-
-if($InstallPath -eq "") {
-	"O parâmetro -InstallPath é obrigatório" | write-warning
-	return
-}
 
 if($InstallPath.StartsWith("./")) {
 	$InstallPath = $InstallPath.replace("./", "$pwd/")
@@ -68,24 +58,6 @@ function Get-WebFile
 	$wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
 	
     $wc.DownloadFile($Url, $Path)
-}
-
-function Get-WebString
-{
-    param (
-        [string] $Url
-    )
-    
-    $wc = New-Object System.Net.WebClient
-	
-	# Credencials
-	$wc.UseDefaultCredentials = $true
-	
-	# Proxy
-	$wc.Proxy = [System.Net.WebRequest]::DefaultWebProxy
-	$wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-	
-	return $wc.DownloadString($Url)
 }
 
 function Get-CMakeFileUrl
@@ -226,14 +198,13 @@ $cmakeVersions = @(
 )
 
 if(!(Test-Path $InstallPath)) {
-	New-Item -Type Directory $InstallPath | out-null
+	New-Item -Type Directory $InstallPath | Out-Null
 }
 
 $cmakeZip = Get-CMakeFileUrl
 
 if($cmakeZip.Count -eq 0) {
-	"Sem suporte para CMake v$Version!" | write-warning
-	return
+	throw "CMake v$Version not found!"
 }
 
 $cmakeUrl = $cmakeZip[1]
@@ -244,32 +215,31 @@ $cmakeDirPath = [System.IO.Path]::Combine($InstallPath, $cmakeDirName)
 $cmakeBinFolderPath = [System.IO.Path]::Combine($InstallPath, "bin")
 $cmakeBinPath = [System.IO.Path]::Combine($cmakeBinFolderPath, "cmake.exe")
 
-"Instalando CMake v$Version em $InstallPath" | write-host
-"--------------------------------------------------------------" | write-host
+"Installing CMake v$Version..." | Write-Host
+"-----------------------------" | Write-Host
 
-" -> Baixando $cmakeUrl..." | write-host
+" -> Downloading $cmakeUrl..." | Write-Host
 Get-WebFile -Url $cmakeUrl -Path $cmakeFilePath
 
-" -> Descompactando $cmakeFileName" | write-host
+" -> Extracting $cmakeFileName" | Write-Host
 Extract-ZipFile -FilePath $cmakeFilePath -DirPath $InstallPath
 
-" -> Movendo arquivos de instalação..." | write-host
+" -> Moving install files..." | Write-Host
 Get-ChildItem -Path $cmakeDirPath -Recurse -Directory | Move-Item -Destination $InstallPath
 Get-ChildItem -Path $cmakeDirPath -Recurse -File | Move-Item -Destination $InstallPath
 
-" -> Removendo arquivos temporários..." | write-host
+" -> Removing temporary files..." | Write-Host
 Remove-Item $cmakeDirPath -Force -Recurse
 Remove-Item $cmakeFilePath -Force
 
 if(!(Test-Path $cmakeBinPath)) {
-	"Falha ao instalar CMake v$Version!" | write-error
-	return
+	throw "CMake v$Version install fail!"
 }
 
-"--------------------------------------------------------------" | write-host
-"CMake v$Version instalado com sucesso!" | write-host
-"" | write-host
-"Adicione ""$cmakeBinFolderPath"" ao caminho PATH!" | write-host
-' - PS : $env:Path = "' + $cmakeBinFolderPath + ';${env:Path}"' | write-host
-' - CMD: set PATH="'    + $cmakeBinFolderPath + ';%PATH%"' | write-host
-"" | write-host
+"-----------------------------" | Write-Host
+"CMake v$Version successfully install!" | Write-Host
+"" | Write-Host
+"Add ""$cmakeBinFolderPath"" to PATH!" | Write-Host
+' - PS : $env:Path = "' + $cmakeBinFolderPath + ';${env:Path}"' | Write-Host
+' - CMD: set PATH="'    + $cmakeBinFolderPath + ';%PATH%"' | Write-Host
+"" | Write-Host
