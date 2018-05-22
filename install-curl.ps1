@@ -84,7 +84,13 @@ function Get-CURLLSourceFileUrl
     return @()
 }
 
-$urlTemplate = "https://curl.haxx.se/download/{0}"
+# mirror: Canada (Vancouver)                -> https://curl.mirror.anstey.ca/{0}
+# mirror: Canada (Fastly (worldwide))       -> https://curl.haxx.se/download/{0}
+# mirror: Germany (St. Wendel, Saarland)    -> https://dl.uxnr.de/mirror/curl/{0}
+# mirror: Singapore                         -> https://execve.net/mirror/curl/{0}
+# mirror: US (Houston, Texas)               -> https://curl.askapache.com/{0}
+$urlTemplate = "https://curl.askapache.com/{0}"
+
 $versionFiles = @(
 	"curl-7.20.0.zip", "curl-7.20.1.zip",
 	"curl-7.21.0.zip", "curl-7.21.1.zip", "curl-7.21.2.zip", "curl-7.21.3.zip", "curl-7.21.4.zip", "curl-7.21.5.zip", "curl-7.21.6.zip", "curl-7.21.7.zip",
