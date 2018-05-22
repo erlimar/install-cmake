@@ -17,6 +17,7 @@ if("${DownloadPath}" -eq "") {
 }
 
 $InstallPath = [System.IO.Path]::GetFullPath($InstallPath)
+$DownloadPath = [System.IO.Path]::GetFullPath($DownloadPath)
 
 $X86ProcessorArch = "x86"
 $X86WindowsArch = "win32"
